@@ -1,85 +1,109 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late ValueNotifier<double> _valueNotifier;
+  late double counter;
+
+  @override
+  void initState() {
+    super.initState();
+    _valueNotifier = ValueNotifier(0.0);
+    counter = 0.0;
+  }
+
+  @override
+  void dispose() {
+    _valueNotifier.dispose();
+    super.dispose();
+  }
+
+  void incrementCounter() {
+    setState(() {
+      if (counter < 33) {
+        counter++;
+        _valueNotifier.value = (counter / 33) * 100;
+      }
+    });
+  }
+
+  void resetCounter() {
+    setState(() {
+      counter = 0.0;
+      _valueNotifier.value = (counter / 33) * 100;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Stateful Widget Demo',
-      home: CounterPage(),
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
-  }
-}
-
-class CounterPage extends StatefulWidget {
-  const CounterPage({super.key});
-
-  @override
-  _CounterPageState createState() => _CounterPageState();
-}
-
-class _CounterPageState extends State<CounterPage> {
-  int _counter = 0; // state
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  void _decrementCounter() {
-    setState(() {
-      _counter--;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Counter App')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Klik tombol tambah atau kurang:',
-              style: TextStyle(fontSize: 24),
-            ),
-            Text('$_counter', style: const TextStyle(fontSize: 40)),
-            Row(
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 119, 210, 145),
+        ),
+        useMaterial3: true,
+      ),
+      home: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 119, 210, 145),
+        body: SafeArea(
+          child: Center(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    minimumSize: const Size(100, 60),
-                  ),
-                  onPressed: _decrementCounter,
-                  child: const Text(
-                    'Kurang',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
+                Text(
+                  '${(counter.round())}',
+                  style: const TextStyle(fontSize: 50),
                 ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    minimumSize: const Size(100, 60),
-                  ),
-                  onPressed: _incrementCounter,
-                  child: const Text(
-                    'Tambah',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
+                SimpleCircularProgressBar(
+                  progressColors: [Colors.amberAccent.shade400],
+                  size: 300,
+                  progressStrokeWidth: 20,
+                  backStrokeWidth: 10,
+                  mergeMode: true,
+                  maxValue: 100,
+                  animationDuration: 0,
+                  valueNotifier: _valueNotifier,
+                  onGetText: (value) {
+                    return Text(
+                      '${(value.toInt() / 3).round()}',
+                      style: const TextStyle(fontSize: 170),
+                    );
+                  },
+                ),
+                const SizedBox(height: 50),
+                ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(50)),
+                  child: InkWell(
+                    onTap: incrementCounter,
+                    child: Container(
+                      decoration: const BoxDecoration(color: Colors.white),
+                      child: const Icon(Icons.fingerprint, size: 125),
+                    ),
                   ),
                 ),
               ],
             ),
-          ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: resetCounter,
+          child: const Icon(Icons.refresh_outlined),
         ),
       ),
     );
@@ -87,3 +111,89 @@ class _CounterPageState extends State<CounterPage> {
 }
 
 // ...existing code...
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    setState(() {
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      _counter++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
+    return Scaffold(
+      appBar: AppBar(
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
+      ),
+      body: Center(
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
+        child: Column(
+          // Column is also a layout widget. It takes a list of children and
+          // arranges them vertically. By default, it sizes itself to fit its
+          // children horizontally, and tries to be as tall as its parent.
+          //
+          // Column has various properties to control how it sizes itself and
+          // how it positions its children. Here we use mainAxisAlignment to
+          // center the children vertically; the main axis here is the vertical
+          // axis because Columns are vertical (the cross axis would be
+          // horizontal).
+          //
+          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+          // action in the IDE, or press "p" in the console), to see the
+          // wireframe for each widget.
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text('You have pushed the button this many times:'),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
